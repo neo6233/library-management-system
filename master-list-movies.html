@@ -79,24 +79,6 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
-								<td>Inception</td>
-								<td>Christopher Nolan</td>
-								<td>Fiction</td>
-								<td>250</td>
-								<td>3</td>
-								<td>2025-10-10</td>
-								<td><button class="btn btn-view" onclick="editItem(this)">Edit</button></td>
-							</tr>
-							<tr>
-								<td>Interstellar</td>
-								<td>Christopher Nolan</td>
-								<td>Science</td>
-								<td>300</td>
-								<td>2</td>
-								<td>2024-05-22</td>
-								<td><button class="btn btn-view" onclick="editItem(this)">Edit</button></td>
-							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -196,9 +178,22 @@
 
 		async function loadMovies(){
 			try{
-				const res = await fetch('/api/movies', { credentials: 'same-origin' });
+				const token = localStorage.getItem('token');
+				console.log('loadMovies: Token present?', token ? 'YES' : 'NO');
+				
+				const headers = {};
+				if(token) headers['x-auth-token'] = token;
+				
+				const res = await fetch('/api/movies', { 
+					credentials: 'same-origin',
+					headers
+				});
+				
+				console.log('loadMovies: Response status:', res.status);
+				
 				if(!res.ok) throw new Error('Failed to load');
 				const movies = await res.json();
+				console.log('loadMovies: Got', movies.length, 'movies:', movies);
 				renderMovies(movies);
 			}catch(e){
 				console.warn('Could not load movies from server:', e);
@@ -236,33 +231,62 @@
 			const category = document.getElementById('category').value;
 			const cost = parseFloat(document.getElementById('cost').value);
 			const quantity = parseInt(document.getElementById('quantity').value,10);
+			
+			console.log('Add form submitted with:', { title, director, category, cost, quantity });
+			
 			if(!title || !director || !category || isNaN(cost) || isNaN(quantity)){
-				addError.textContent = 'Please fill all mandatory fields.'; addError.style.display = 'block'; return;
+				addError.textContent = 'Please fill all mandatory fields.'; 
+				addError.style.display = 'block'; 
+				console.log('Validation failed');
+				return;
 			}
 
 			const proc = document.getElementById('procDate').value || '';
 			try{
+				const token = localStorage.getItem('token');
+				console.log('Token available?', token ? 'YES' : 'NO');
+				console.log('Token value:', token?.substring(0, 20) + '...');
+				
+				const headers = { 'Content-Type': 'application/json' };
+				if(token) headers['x-auth-token'] = token;
+				
+				const payload = { name: title, director, category, cost, quantity, procurementDate: proc };
+				console.log('Sending POST to /api/movies with:', payload);
+				console.log('Headers:', headers);
+				
 				const res = await fetch('/api/movies', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					headers,
 					credentials: 'same-origin',
-					body: JSON.stringify({ name: title, director, category, cost, quantity, procurementDate: proc })
+					body: JSON.stringify(payload)
 				});
-				if(!res.ok) throw new Error('Server error');
-				addCard.style.display='none'; addForm.reset();
+				
+				console.log('POST Response status:', res.status);
+				
+				if(!res.ok) {
+					let errMsg = 'Server error';
+					try {
+						const errData = await res.json();
+						errMsg = errData.msg || 'Server error';
+					} catch (parseErr) {
+						const text = await res.text();
+						console.error('Response text:', text);
+						errMsg = `HTTP ${res.status}: ${text}`;
+					}
+					console.error('POST failed with:', errMsg);
+					throw new Error(errMsg);
+				}
+				
+				const newMovie = await res.json();
+				console.log('Movie added successfully:', newMovie);
+				addCard.style.display='none'; 
+				addForm.reset();
+				console.log('Calling loadMovies()...');
 				loadMovies();
 			}catch(err){
-				const row = moviesTable.insertRow();
-				row.insertCell(0).textContent = title;
-				row.insertCell(1).textContent = director;
-				row.insertCell(2).textContent = category;
-				row.insertCell(3).textContent = cost;
-				row.insertCell(4).textContent = quantity;
-				row.insertCell(5).textContent = proc;
-				const actions = row.insertCell(6);
-				const btn = document.createElement('button'); btn.className='btn btn-view'; btn.textContent='Edit'; btn.onclick = ()=> editItem(btn);
-				actions.appendChild(btn);
-				addCard.style.display='none'; addForm.reset();
+				console.error('Add movie error:', err);
+				addError.textContent = 'Failed to add movie: ' + err.message;
+				addError.style.display = 'block';
 			}
 		});
 

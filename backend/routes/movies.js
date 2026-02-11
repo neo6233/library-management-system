@@ -14,8 +14,22 @@ const generateSerialNo = async (category) => {
     };
     
     const categoryPrefix = prefix[category] || 'MV';
-    const count = await Movie.countDocuments({ category }) + 1;
-    return `${categoryPrefix}(B/M)${count.toString().padStart(6, '0')}`;
+    
+    // Find the highest existing serial number for this category
+    const lastMovie = await Movie.findOne({ 
+        serialNo: new RegExp(`^${categoryPrefix}\\(B/M\\)`) 
+    }).sort({ serialNo: -1 });
+    
+    let nextNumber = 1;
+    if (lastMovie && lastMovie.serialNo) {
+        // Extract the number from the serial number
+        const match = lastMovie.serialNo.match(/(\d+)$/);
+        if (match) {
+            nextNumber = parseInt(match[1]) + 1;
+        }
+    }
+    
+    return `${categoryPrefix}(B/M)${nextNumber.toString().padStart(6, '0')}`;
 };
 
 // @route   POST api/movies
@@ -24,25 +38,38 @@ router.post('/', [auth, auth.isAdmin], async (req, res) => {
     try {
         const { name, director, category, cost, procurementDate, quantity } = req.body;
         
+        console.log('POST /api/movies - Received:', { name, director, category, cost, procurementDate, quantity });
+        
+        // Validate required fields
+        if (!name || !director || !category || cost === undefined || quantity === undefined) {
+            console.log('Validation failed - missing fields');
+            return res.status(400).json({ msg: 'Missing required fields: name, director, category, cost, quantity' });
+        }
+        
         const serialNo = await generateSerialNo(category);
+        console.log('Generated serialNo:', serialNo);
         
         const newMovie = new Movie({
             serialNo,
             name,
             director,
             category,
-            cost,
-            procurementDate: procurementDate || Date.now(),
-            quantity: quantity || 1,
-            availableCopies: quantity || 1,
+            cost: parseFloat(cost),
+            procurementDate: procurementDate ? new Date(procurementDate) : Date.now(),
+            quantity: parseInt(quantity) || 1,
+            availableCopies: parseInt(quantity) || 1,
             type: 'Movie'
         });
         
+        console.log('Movie object created:', newMovie);
+        
         const movie = await newMovie.save();
+        console.log('Movie saved successfully:', movie);
         res.json(movie);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('Error in POST /api/movies:', err.message);
+        console.error('Full error:', err);
+        res.status(500).json({ msg: 'Server error while adding movie: ' + err.message });
     }
 });
 
@@ -54,7 +81,7 @@ router.get('/', auth, async (req, res) => {
         res.json(movies);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching movies' });
     }
 });
 
@@ -69,7 +96,7 @@ router.get('/available', auth, async (req, res) => {
         res.json(movies);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching available movies' });
     }
 });
 
@@ -93,7 +120,7 @@ router.get('/search', auth, async (req, res) => {
         res.json(movies);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while searching movies' });
     }
 });
 
@@ -141,7 +168,7 @@ router.put('/', [auth, auth.isAdmin], async (req, res) => {
         res.json(movie);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while updating movie' });
     }
 });
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Issue = require('../models/Issue');
 const Fine = require('../models/Fine');
-const Book = require('../models/book');
+const Book = require('../models/Book');
 const Movie = require('../models/Movie');
 const Membership = require('../models/Membership');
 
@@ -102,7 +102,7 @@ router.post('/', auth, async (req, res) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

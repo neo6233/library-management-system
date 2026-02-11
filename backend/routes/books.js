@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Book = require('../models/book');
+const Book = require('../models/Book');
 
 // Generate serial number for books
 const generateSerialNo = async (category) => {
@@ -24,25 +24,38 @@ router.post('/', [auth, auth.isAdmin], async (req, res) => {
     try {
         const { name, author, category, cost, procurementDate, quantity } = req.body;
         
+        console.log('POST /api/books - Received:', { name, author, category, cost, procurementDate, quantity });
+        
+        // Validate required fields
+        if (!name || !author || !category || cost === undefined || quantity === undefined) {
+            console.log('Validation failed - missing fields');
+            return res.status(400).json({ msg: 'Missing required fields: name, author, category, cost, quantity' });
+        }
+        
         const serialNo = await generateSerialNo(category);
+        console.log('Generated serialNo:', serialNo);
         
         const newBook = new Book({
             serialNo,
             name,
             author,
             category,
-            cost,
-            procurementDate: procurementDate || Date.now(),
-            quantity: quantity || 1,
-            availableCopies: quantity || 1,
+            cost: parseFloat(cost),
+            procurementDate: procurementDate ? new Date(procurementDate) : Date.now(),
+            quantity: parseInt(quantity) || 1,
+            availableCopies: parseInt(quantity) || 1,
             type: 'Book'
         });
         
+        console.log('Book object created:', newBook);
+        
         const book = await newBook.save();
+        console.log('Book saved successfully:', book);
         res.json(book);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('Error in POST /api/books:', err.message);
+        console.error('Full error:', err);
+        res.status(500).json({ msg: 'Server error while adding book: ' + err.message });
     }
 });
 
@@ -54,7 +67,7 @@ router.get('/', auth, async (req, res) => {
         res.json(books);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching books' });
     }
 });
 
@@ -69,7 +82,7 @@ router.get('/available', auth, async (req, res) => {
         res.json(books);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching available books' });
     }
 });
 
@@ -93,12 +106,60 @@ router.get('/search', auth, async (req, res) => {
         res.json(books);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while searching books' });
+    }
+});
+
+// @route   PUT api/books
+// @desc    Update a book (by serialNo or original name+author)
+router.put('/', [auth, auth.isAdmin], async (req, res) => {
+    try {
+        const { serialNo, originalName, originalAuthor, name, author, category, cost, procurementDate, quantity } = req.body;
+
+        console.log('PUT /api/books payload:', { serialNo, originalName, originalAuthor, name, author, category, cost, procurementDate, quantity });
+
+        const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        let book;
+        if (serialNo) {
+            book = await Book.findOne({ serialNo });
+        }
+
+        // try exact match by original name/author if serialNo didn't find
+        if (!book && originalName && originalAuthor) {
+            book = await Book.findOne({ name: originalName, author: originalAuthor });
+        }
+
+        // try case-insensitive trimmed regex match as a fallback
+        if (!book && originalName && originalAuthor) {
+            const nameRegex = new RegExp('^' + escapeRegex((originalName || '').trim()) + '$', 'i');
+            const authorRegex = new RegExp('^' + escapeRegex((originalAuthor || '').trim()) + '$', 'i');
+            book = await Book.findOne({ name: nameRegex, author: authorRegex });
+        }
+
+        if (!book) return res.status(404).json({ msg: 'Book not found' });
+
+        if (name) book.name = name;
+        if (author) book.author = author;
+        if (category) book.category = category;
+        if (cost !== undefined) book.cost = cost;
+        if (procurementDate) book.procurementDate = procurementDate;
+        if (quantity !== undefined) {
+            const diff = quantity - book.quantity;
+            book.quantity = quantity;
+            book.availableCopies = Math.max(0, book.availableCopies + diff);
+        }
+
+        await book.save();
+        res.json(book);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'Server error while updating book' });
     }
 });
 
 // @route   PUT api/books/:serialNo
-// @desc    Update book
+// @desc    Update book by serial number
 router.put('/:serialNo', [auth, auth.isAdmin], async (req, res) => {
     try {
         const { name, author, category, status, cost } = req.body;
@@ -119,7 +180,7 @@ router.put('/:serialNo', [auth, auth.isAdmin], async (req, res) => {
         res.json(book);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while updating book' });
     }
 });
 

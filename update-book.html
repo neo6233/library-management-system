@@ -181,7 +181,7 @@
 				originalName: ORIGINAL_TITLE || undefined,
 				originalDirector: ORIGINAL_AUTHOR || undefined,
 				name: name,
-				director: creator,
+				[itemType === 'Book' ? 'author' : 'director']: creator,
 				category: category,
 				cost: cost !== '' ? parseFloat(cost) : undefined,
 				quantity: quantity !== '' ? parseInt(quantity, 10) : undefined,
@@ -194,7 +194,8 @@
 					const headers = { 'Content-Type': 'application/json' };
 					if(token) headers['x-auth-token'] = token;
 
-					const res = await fetch('/api/movies', {
+					const apiEndpoint = itemType === 'Book' ? 'books' : 'movies';
+					const res = await fetch(`/api/${apiEndpoint}`, {
 						method: 'PUT',
 						headers,
 						credentials: 'same-origin',

@@ -27,7 +27,7 @@ router.post('/users', [auth, auth.isAdmin], async (req, res) => {
         res.json(user);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -52,7 +52,7 @@ router.put('/users/:userId', [auth, auth.isAdmin], async (req, res) => {
         res.json(user);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -64,7 +64,7 @@ router.get('/users', [auth, auth.isAdmin], async (req, res) => {
         res.json(users);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

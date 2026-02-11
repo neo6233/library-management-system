@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Book = require('../models/book');
+const Book = require('../models/Book');
 const Movie = require('../models/Movie');
 const Membership = require('../models/Membership');
 const Issue = require('../models/Issue');
@@ -15,7 +15,7 @@ router.get('/master-books', auth, async (req, res) => {
         res.json(books);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching books' });
     }
 });
 
@@ -27,7 +27,7 @@ router.get('/master-movies', auth, async (req, res) => {
         res.json(movies);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching movies' });
     }
 });
 
@@ -39,7 +39,7 @@ router.get('/master-memberships', auth, async (req, res) => {
         res.json(memberships);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching memberships' });
     }
 });
 
@@ -53,7 +53,7 @@ router.get('/active-issues', auth, async (req, res) => {
         res.json(issues);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching active issues' });
     }
 });
 
@@ -83,7 +83,7 @@ router.get('/overdue-returns', auth, async (req, res) => {
         res.json(overdueWithFine);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching overdue returns' });
     }
 });
 

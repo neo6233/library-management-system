@@ -60,7 +60,7 @@ router.post('/', [auth, auth.isAdmin], async (req, res) => {
         res.json(membership);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -93,7 +93,7 @@ router.put('/:membershipId', [auth, auth.isAdmin], async (req, res) => {
         res.json(membership);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -105,7 +105,7 @@ router.get('/', auth, async (req, res) => {
         res.json(memberships);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -119,7 +119,7 @@ router.get('/active', auth, async (req, res) => {
         res.json(memberships);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -138,7 +138,7 @@ router.get('/:membershipId', auth, async (req, res) => {
         res.json(membership);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

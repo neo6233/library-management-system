@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Issue = require('../models/Issue');
-const Book = require('../models/book');
+const Book = require('../models/Book');
 const Movie = require('../models/Movie');
 const Membership = require('../models/Membership');
 
@@ -88,7 +88,7 @@ router.post('/', auth, async (req, res) => {
         res.json(issue);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while issuing item' });
     }
 });
 
@@ -102,7 +102,7 @@ router.get('/active', auth, async (req, res) => {
         res.json(issues);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -118,7 +118,7 @@ router.get('/overdue', auth, async (req, res) => {
         res.json(issues);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error while fetching overdue issues' });
     }
 });
 
@@ -132,7 +132,7 @@ router.get('/member/:membershipId', auth, async (req, res) => {
         res.json(issues);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 

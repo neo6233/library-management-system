@@ -6,7 +6,7 @@ const path = require('path');
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const User = require('../models/User');
-const Book = require('../models/book');
+const Book = require('../models/Book');
 const Movie = require('../models/Movie');
 const Membership = require('../models/Membership');
 const Issue = require('../models/Issue');

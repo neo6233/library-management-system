@@ -15,7 +15,7 @@ router.get('/member/:membershipId', auth, async (req, res) => {
         res.json(fines);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -49,7 +49,7 @@ router.put('/pay/:fineId', auth, async (req, res) => {
         res.json({ msg: 'Fine paid successfully' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
@@ -63,7 +63,7 @@ router.get('/pending', auth, async (req, res) => {
         res.json(fines);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ msg: 'Server error' });
     }
 });
 
