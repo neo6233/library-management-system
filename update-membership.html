@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Update Membership - Library Management</title>
+	<link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+	<div class="chart-nav">
+		<button onclick="window.location.href='index.html'" class="chart-btn">
+			<i>📊</i> Chart
+		</button>
+	</div>
+
+	<div class="dashboard-container">
+		<div class="sidebar">
+			<div class="sidebar-header">
+				<h3>📚 Library MS</h3>
+				<p>Membership</p>
+			</div>
+			<div class="user-info" id="userInfo"></div>
+			<nav class="sidebar-nav">
+				<a href="admin-home.html"> <span>🏠</span> Home</a>
+				<a href="maintenance.html"> <span>🔧</span> Maintenance</a>
+				<a href="reports.html"> <span>📊</span> Reports</a>
+				<a href="transactions.html"> <span>📋</span> Transactions</a>
+				<a href="#" id="logoutBtn"> <span>🚪</span> Logout</a>
+			</nav>
+		</div>
+
+		<div class="main-content">
+			<div class="header">
+				<h1>Update Membership</h1>
+				<div class="header-right">
+					<span id="currentDateTime"></span>
+					<button onclick="window.location.href='master-list-membership.html'" class="btn btn-secondary" style="margin-left:15px">Back</button>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-header"><h2>Lookup Membership</h2></div>
+				<div class="card-body">
+					<div class="form-row" style="align-items:center">
+						<div style="flex:1">
+							<label>Membership Number *</label>
+							<input id="memNo" type="text" placeholder="Enter Membership No (e.g. MB-0001)">
+						</div>
+						<div style="min-width:140px">
+							<button id="lookupBtn" class="btn btn-primary" style="margin-top:22px">Lookup</button>
+						</div>
+					</div>
+					<div id="lookup-error" class="error-message" style="display:none;margin-top:12px" aria-live="polite"></div>
+				</div>
+			</div>
+
+			<div class="card" id="update-card" style="display:none">
+				<div class="card-header"><h2>Update or Cancel Membership</h2></div>
+				<div class="card-body">
+					<form id="updateMembershipForm">
+						<div class="form-group">
+							<label for="mname">Name</label>
+							<input id="mname" type="text" readonly>
+						</div>
+
+						<div class="form-row">
+							<div class="form-group">
+								<label for="mtype">Membership Type</label>
+								<input id="mtype" type="text" readonly>
+							</div>
+							<div class="form-group">
+								<label for="startDate">Start Date</label>
+								<input id="startDate" type="date" readonly>
+							</div>
+							<div class="form-group">
+								<label for="endDate">End Date</label>
+								<input id="endDate" type="date" readonly>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label>Action *</label>
+							<div class="radio-group">
+								<label class="radio-label"><input type="radio" name="action" value="extend" checked> Extend Membership</label>
+								<label class="radio-label"><input type="radio" name="action" value="cancel"> Cancel Membership</label>
+							</div>
+						</div>
+
+						<div id="extend-options" class="form-group">
+							<label>Extend By</label>
+							<div class="radio-group">
+								<label class="radio-label"><input type="radio" name="extendPeriod" value="6" checked> 6 months</label>
+								<label class="radio-label"><input type="radio" name="extendPeriod" value="12"> 1 year</label>
+								<label class="radio-label"><input type="radio" name="extendPeriod" value="24"> 2 years</label>
+							</div>
+						</div>
+
+						<div id="update-error" class="error-message" style="display:none" aria-live="polite"></div>
+
+						<div class="form-actions">
+							<button type="submit" class="btn btn-primary">Confirm</button>
+							<button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		document.getElementById('currentDateTime').textContent = new Date().toLocaleString();
+
+		const sampleMembers = {
+			'MB-0001': {name:'Alice Johnson', type:'6 months', start:'2025-08-01', end:'2026-02-01'},
+			'MB-0002': {name:'Bob Kumar', type:'1 year', start:'2025-01-15', end:'2026-01-15'},
+			'MB-0003': {name:'Charu Patel', type:'6 months', start:'2025-12-01', end:'2026-06-01'}
+		};
+
+		const memNoInput = document.getElementById('memNo');
+		const lookupBtn = document.getElementById('lookupBtn');
+		const lookupError = document.getElementById('lookup-error');
+		const updateCard = document.getElementById('update-card');
+		const mname = document.getElementById('mname');
+		const mtype = document.getElementById('mtype');
+		const startDate = document.getElementById('startDate');
+		const endDate = document.getElementById('endDate');
+		const updateForm = document.getElementById('updateMembershipForm');
+		const updateError = document.getElementById('update-error');
+		const cancelBtn = document.getElementById('cancelBtn');
+
+		function clearUpdate(){
+			updateCard.style.display = 'none';
+			mname.value = '';
+			mtype.value = '';
+			startDate.value = '';
+			endDate.value = '';
+			updateError.style.display = 'none';
+			updateForm.reset();
+		}
+
+		lookupBtn.addEventListener('click', ()=>{
+			lookupError.style.display='none';
+			const no = memNoInput.value.trim();
+			if(!no){ lookupError.textContent = 'Membership Number is required.'; lookupError.style.display='block'; clearUpdate(); return; }
+			const data = sampleMembers[no];
+			if(!data){ lookupError.textContent = 'Membership not found.'; lookupError.style.display='block'; clearUpdate(); return; }
+
+			// populate
+			mname.value = data.name;
+			mtype.value = data.type;
+			startDate.value = data.start;
+			endDate.value = data.end;
+			updateCard.style.display = '';
+			updateError.style.display = 'none';
+		});
+
+		// toggle extend options when action changes
+		updateForm.addEventListener('change', (e)=>{
+			if(e.target.name === 'action'){
+				const action = updateForm.action.value;
+				document.getElementById('extend-options').style.display = action === 'extend' ? '' : 'none';
+			}
+		});
+
+		// default: ensure extend options visible
+		document.getElementById('extend-options').style.display = '';
+
+		updateForm.addEventListener('submit', e=>{
+			e.preventDefault();
+			updateError.style.display='none';
+			const no = memNoInput.value.trim();
+			if(!no){ updateError.textContent = 'Membership Number is required.'; updateError.style.display='block'; return; }
+			if(!sampleMembers[no]){ updateError.textContent = 'Membership not found.'; updateError.style.display='block'; return; }
+
+			const action = updateForm.action.value;
+			if(action === 'cancel'){
+				if(!confirm('Are you sure you want to cancel this membership?')) return;
+				// simulated cancel
+				alert('Membership ' + no + ' cancelled (simulated).');
+				// remove from sample data for demo
+				delete sampleMembers[no];
+				clearUpdate();
+				memNoInput.value = '';
+				return;
+			}
+
+			// extend
+			const months = parseInt(updateForm.extendPeriod.value,10);
+			const oldEnd = new Date(endDate.value);
+			const newEnd = new Date(oldEnd);
+			newEnd.setMonth(newEnd.getMonth() + months);
+			// update sample and UI
+			sampleMembers[no].end = newEnd.toISOString().slice(0,10);
+			endDate.value = sampleMembers[no].end;
+			alert('Membership extended to ' + sampleMembers[no].end + ' (simulated).');
+			clearUpdate();
+			memNoInput.value = '';
+		});
+
+		cancelBtn.addEventListener('click', ()=>{ clearUpdate(); });
+	</script>
+</body>
+</html>
+

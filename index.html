@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System - Chart</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+    <style>
+        .chart-page {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .login-options {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .login-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .login-card h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+        
+        .login-card p {
+            color: #718096;
+            margin-bottom: 25px;
+        }
+        
+        .login-card .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        }
+        
+        .flow-chart {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 30px;
+        }
+        
+        .flow-chart h2 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .chart-node {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .chart-node h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .chart-node ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .chart-node li {
+            padding: 8px 0;
+            color: #4a5568;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        
+        .chart-node li:last-child {
+            border-bottom: none;
+        }
+        
+        .info-section {
+            background: #ebf4ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .info-section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-section li {
+            padding: 8px 0;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-section li:before {
+            content: "📌";
+            margin-right: 10px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-page">
+        <h1 class="chart-title">📚 Library Management System</h1>
+        <p class="text-center" style="color: #718096; margin-bottom: 40px;">
+            Complete Flow Chart and Navigation Guide
+        </p>
+        
+        <div class="login-options">
+            <div class="login-card">
+                <h2>👤 User Login</h2>
+                <p>Access reports and transactions</p>
+                <p><strong>User ID:</strong> user</p>
+                <p><strong>Password:</strong> user</p>
+                <button onclick="window.location.href='user-login.html'" class="btn btn-primary">
+                    Login as User
+                </button>
+            </div>
+            
+            <div class="login-card">
+                <h2>👑 Admin Login</h2>
+                <p>Full access to maintenance, reports, and transactions</p>
+                <p><strong>User ID:</strong> adm</p>
+                <p><strong>Password:</strong> adm</p>
+                <button onclick="window.location.href='admin-login.html'" class="btn btn-primary">
+                    Login as Admin
+                </button>
+            </div>
+        </div>
+        
+        <div class="flow-chart">
+            <h2>System Flow Chart</h2>
+            
+            <div class="chart-grid">
+                <div class="chart-node">
+                    <h3>🔐 Authentication</h3>
+                    <ul>
+                        <li>Admin Login</li>
+                        <li>User Login</li>
+                        <li>Password Hidden</li>
+                        <li>Session Management</li>
+                    </ul>
+                </div>
+                
+                <div class="chart-node">
+                    <h3>🏠 Home Pages</h3>
+                    <ul>
+                        <li>Admin Dashboard</li>
+                        <li>User Dashboard</li>
+                        <li>Product Categories</li>
+                        <li>Quick Stats</li>
+                    </ul>
+                </div>
+                
+                <div class="chart-node">
+                    <h3>📋 Transactions</h3>
+                    <ul>
+                        <li>Book Availability</li>
+                        <li>Issue Book</li>
+                        <li>Return Book</li>
+                        <li>Pay Fine</li>
+                    </ul>
+                </div>
+                
+                <div class="chart-node">
+                    <h3>📊 Reports</h3>
+                    <ul>
+                        <li>Master List - Books</li>
+                        <li>Master List - Movies</li>
+                        <li>Master List - Memberships</li>
+                        <li>Active Issues</li>
+                        <li>Overdue Returns</li>
+                        <li>Issue Requests</li>
+                    </ul>
+                </div>
+                
+                <div class="chart-node">
+                    <h3>🔧 Maintenance</h3>
+                    <ul>
+                        <li>Add Membership</li>
+                        <li>Update Membership</li>
+                        <li>Add Book/Movie</li>
+                        <li>Update Book/Movie</li>
+                        <li>User Management</li>
+                    </ul>
+                </div>
+                
+                <div class="chart-node">
+                    <h3>✅ Confirmations</h3>
+                    <ul>
+                        <li>Transaction Success</li>
+                        <li>Transaction Cancelled</li>
+                        <li>Logout Success</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>📌 Important Information</h3>
+                <ul>
+                    <li><strong>2 types of login:</strong> Admin and User</li>
+                    <li><strong>Admin:</strong> Can access Maintenance, Reports, and Transactions</li>
+                    <li><strong>User:</strong> Can access Reports and Transactions only</li>
+                    <li><strong>Radio buttons:</strong> Only one can be selected</li>
+                    <li><strong>Checkbox:</strong> Checked = Yes, Unchecked = No</li>
+                    <li><strong>Passwords:</strong> Hidden when typed</li>
+                    <li><strong>Book Issue:</strong> Return date automatically set to 15 days ahead</li>
+                    <li><strong>Fine:</strong> ₹5 per day after due date</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

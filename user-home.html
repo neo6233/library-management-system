@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Home - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p>User Dashboard</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="user-home.html" class="active">
+                    <span>🏠</span> Home
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="transactions.html">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>User Home Page</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='index.html'" class="btn btn-secondary" style="margin-left: 15px;">
+                        Back to Chart
+                    </button>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-details">
+                        <h3 id="availableBooks">0</h3>
+                        <p>Available Books</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🎬</div>
+                    <div class="stat-details">
+                        <h3 id="availableMovies">0</h3>
+                        <p>Available Movies</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-details">
+                        <h3 id="myIssues">0</h3>
+                        <p>My Issues</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-details">
+                        <h3 id="myFines">0</h3>
+                        <p>My Fines</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Product Categories</h2>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code No From</th>
+                                <th>Code No To</th>
+                                <th>Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SC(B/M)000001</td>
+                                <td>SC(B/M)000004</td>
+                                <td>Science</td>
+                            </tr>
+                            <tr>
+                                <td>EC(B/M)000001</td>
+                                <td>EC(B/M)000004</td>
+                                <td>Economics</td>
+                            </tr>
+                            <tr>
+                                <td>FC(B/M)000001</td>
+                                <td>FC(B/M)000004</td>
+                                <td>Fiction</td>
+                            </tr>
+                            <tr>
+                                <td>CH(B/M)000001</td>
+                                <td>CH(B/M)000004</td>
+                                <td>Children</td>
+                            </tr>
+                            <tr>
+                                <td>PD(B/M)000001</td>
+                                <td>PD(B/M)000004</td>
+                                <td>Personal Development</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+        // Load user dashboard stats
+        async function loadUserStats() {
+            try {
+                const token = localStorage.getItem('token');
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                
+                // Fetch available books
+                const booksRes = await fetch('http://localhost:5000/api/books/available', {
+                    headers: { 'x-auth-token': token }
+                });
+                const books = await booksRes.json();
+                document.getElementById('availableBooks').textContent = books.length;
+                
+                // Fetch available movies
+                const moviesRes = await fetch('http://localhost:5000/api/movies/available', {
+                    headers: { 'x-auth-token': token }
+                });
+                const movies = await moviesRes.json();
+                document.getElementById('availableMovies').textContent = movies.length;
+                
+                // You can add more stats here
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadUserStats);
+    </script>
+</body>
+</html>

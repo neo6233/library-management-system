@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p id="userRole">User</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="homeLink">
+                    <span>🏠</span> Home
+                </a>
+                <a href="transactions.html">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="reports.html" class="active">
+                    <span>📊</span> Reports
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Reports</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card" onclick="window.location.href='master-list-books.html'">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-details">
+                        <h3>Master List</h3>
+                        <p>Books</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='master-list-movies.html'">
+                    <div class="stat-icon">🎬</div>
+                    <div class="stat-details">
+                        <h3>Master List</h3>
+                        <p>Movies</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='master-list-membership.html'">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-details">
+                        <h3>Master List</h3>
+                        <p>Memberships</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='active-issues.html'">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-details">
+                        <h3>Active</h3>
+                        <p>Issues</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='overdue-returns.html'">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-details">
+                        <h3>Overdue</h3>
+                        <p>Returns</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='issue-requests.html'">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-details">
+                        <h3>Pending</h3>
+                        <p>Issue Requests</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+        // Set home link based on user role
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const homeLink = document.getElementById('homeLink');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (user.isAdmin || user.role === 'admin') {
+                homeLink.href = 'admin-home.html';
+                userRoleEl.textContent = 'Admin';
+            } else {
+                homeLink.href = 'user-home.html';
+                userRoleEl.textContent = 'User';
+            }
+        });
+    </script>
+</body>
+</html>

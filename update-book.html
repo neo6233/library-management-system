@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Update Book/Movie - Library Management System</title>
+	<link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+	<div class="chart-nav">
+		<button onclick="window.location.href='index.html'" class="chart-btn">
+			<i>📊</i> Chart
+		</button>
+	</div>
+    
+	<div class="dashboard-container">
+		<div class="sidebar">
+			<div class="sidebar-header">
+				<h3>📚 Library MS</h3>
+				<p>Admin Maintenance</p>
+			</div>
+			<div class="user-info" id="userInfo"></div>
+			<nav class="sidebar-nav">
+				<a href="admin-home.html">
+					<span>🏠</span> Home
+				</a>
+				<a href="maintenance.html" class="active">
+					<span>🔧</span> Maintenance
+				</a>
+				<a href="reports.html">
+					<span>📊</span> Reports
+				</a>
+				<a href="transactions.html">
+					<span>📋</span> Transactions
+				</a>
+				<a href="#" id="logoutBtn">
+					<span>🚪</span> Logout
+				</a>
+			</nav>
+		</div>
+        
+		<div class="main-content">
+			<div class="header">
+				<h1>Update Book/Movie</h1>
+				<div class="header-right">
+					<span id="currentDateTime"></span>
+					<button onclick="window.location.href='maintenance.html'" class="btn btn-secondary" style="margin-left: 15px;">
+						Back to Maintenance
+					</button>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-header">
+					<h2>Update Item</h2>
+				</div>
+				<div class="card-body">
+					<form id="updateForm">
+						<div class="form-group">
+							<label>Item Type *</label>
+							<div class="radio-group">
+								<label class="radio-label">
+									<input type="radio" name="itemType" value="Book" checked>
+									Book
+								</label>
+								<label class="radio-label">
+									<input type="radio" name="itemType" value="Movie">
+									Movie
+								</label>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="itemName">Name *</label>
+							<input type="text" id="itemName" name="itemName" placeholder="Enter name" required>
+						</div>
+
+						<div class="form-group">
+							<label for="creator">Author Name *</label>
+							<input type="text" id="creator" name="creator" placeholder="Enter author name" required>
+						</div>
+
+						<div class="form-group">
+							<label for="category">Category *</label>
+							<select id="category" name="category" required>
+								<option value="">Select Category</option>
+								<option value="Science">Science</option>
+								<option value="Economics">Economics</option>
+								<option value="Fiction">Fiction</option>
+								<option value="Children">Children</option>
+								<option value="Personal Development">Personal Development</option>
+							</select>
+						</div>
+
+						<div class="form-row">
+							<div class="form-group">
+								<label for="cost">Cost (₹) *</label>
+								<input type="number" id="cost" name="cost" placeholder="Enter cost" min="0" step="0.01" required>
+							</div>
+                            
+							<div class="form-group">
+								<label for="quantity">Quantity/Copies *</label>
+								<input type="number" id="quantity" name="quantity" placeholder="Enter quantity" min="1" required>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="procurementDate">Date of Procurement</label>
+							<input type="date" id="procurementDate" name="procurementDate">
+						</div>
+
+						<div id="errorMessage" class="error-message" style="display:none;"></div>
+
+						<div class="form-actions">
+							<button type="submit" class="btn btn-primary">Update Item</button>
+							<button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		document.getElementById('currentDateTime').textContent = new Date().toLocaleString();
+
+		const form = document.getElementById('updateForm');
+		const errorDiv = document.getElementById('errorMessage');
+
+		// Populate form if query params provided (simulate edit)
+		function populateFromQuery(){
+			const params = new URLSearchParams(window.location.search);
+			if(!params.toString()) return;
+			const type = params.get('type');
+			if(type){
+				const r = document.querySelector('input[name="itemType"][value="' + type + '"]');
+				if(r) r.checked = true;
+			}
+			const mappings = ['title','author','category','cost','quantity','procurementDate'];
+			if(params.get('title')) document.getElementById('itemName').value = params.get('title');
+			if(params.get('author')) document.getElementById('creator').value = params.get('author');
+			if(params.get('category')) document.getElementById('category').value = params.get('category');
+			if(params.get('cost')) document.getElementById('cost').value = params.get('cost');
+			if(params.get('quantity')) document.getElementById('quantity').value = params.get('quantity');
+			if(params.get('procurementDate')) document.getElementById('procurementDate').value = params.get('procurementDate');
+		}
+
+		populateFromQuery();
+
+	// capture originals (if passed) so we can update the correct row on return
+	const params = new URLSearchParams(window.location.search);
+	const ORIGINAL_TITLE = params.get('originalTitle') || params.get('title') || '';
+	const ORIGINAL_AUTHOR = params.get('originalAuthor') || params.get('author') || '';
+	const SERIAL_NO = params.get('serialNo') || '';
+
+		document.getElementById('cancelBtn').addEventListener('click', ()=>{
+			window.location.href = 'maintenance.html';
+		});
+
+		form.addEventListener('submit', e=>{
+			e.preventDefault();
+			errorDiv.style.display = 'none';
+			errorDiv.textContent = '';
+
+			const itemType = form.itemType.value;
+			const name = document.getElementById('itemName').value.trim();
+			const creator = document.getElementById('creator').value.trim();
+			const category = document.getElementById('category').value;
+			const cost = document.getElementById('cost').value;
+			const quantity = document.getElementById('quantity').value;
+
+			if(!name || !creator || !category || cost === '' || quantity === ''){
+				errorDiv.textContent = 'Please fill all mandatory fields.';
+				errorDiv.style.display = 'block';
+				return;
+			}
+
+			// Send updated data to backend to persist changes
+			const payload = {
+				serialNo: SERIAL_NO || undefined,
+				originalName: ORIGINAL_TITLE || undefined,
+				originalDirector: ORIGINAL_AUTHOR || undefined,
+				name: name,
+				director: creator,
+				category: category,
+				cost: cost !== '' ? parseFloat(cost) : undefined,
+				quantity: quantity !== '' ? parseInt(quantity, 10) : undefined,
+				procurementDate: document.getElementById('procurementDate').value || undefined
+			};
+
+			(async () => {
+					try{
+					const token = localStorage.getItem('token');
+					const headers = { 'Content-Type': 'application/json' };
+					if(token) headers['x-auth-token'] = token;
+
+					const res = await fetch('/api/movies', {
+						method: 'PUT',
+						headers,
+						credentials: 'same-origin',
+						body: JSON.stringify(payload)
+					});
+
+					if(!res.ok){
+						let msg = 'Server error while updating.';
+						try{ const d = await res.json(); if(d && d.msg) msg = d.msg; }catch(e){}
+						errorDiv.textContent = msg;
+						errorDiv.style.display = 'block';
+						return;
+					}
+
+					alert('Item updated successfully.');
+					const ref = document.referrer;
+					if(ref && ref.indexOf('master-list-movies.html') !== -1) window.location.href = ref;
+					else if(ref) window.location.href = ref;
+					else window.location.href = 'maintenance.html';
+				}catch(err){
+					// fallback: persist locally so UI reflects change until server is available
+					const updated = {
+						type: itemType,
+						title: name,
+						author: creator,
+						category: category,
+						cost: cost,
+						quantity: quantity,
+						procurementDate: document.getElementById('procurementDate').value || '',
+						originalTitle: ORIGINAL_TITLE,
+						originalAuthor: ORIGINAL_AUTHOR
+					};
+					try{ localStorage.setItem('lastUpdatedItem', JSON.stringify(updated)); }catch(e){ }
+					alert('Item updated locally (server unavailable).');
+					const ref = document.referrer;
+					if(ref && ref.indexOf('master-list-movies.html') !== -1) window.location.href = ref;
+					else if(ref) window.location.href = ref;
+					else window.location.href = 'maintenance.html';
+				}
+			})();
+		});
+	</script>
+</body>
+</html>
+

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Overdue Returns - Library Management</title>
+	<link rel="stylesheet" href="/frontend/css/style.css">
+  </head>
+  <body>
+	<div class="chart-nav">
+		<button onclick="window.location.href='index.html'" class="chart-btn">
+			<i>📊</i> Chart
+		</button>
+	</div>
+
+	<div class="dashboard-container">
+		<div class="sidebar">
+			<div class="sidebar-header">
+				<h3>📚 Library MS</h3>
+				<p>Admin Maintenance</p>
+			</div>
+			<div class="user-info" id="userInfo"></div>
+			<nav class="sidebar-nav">
+				<a href="admin-home.html">
+					<span>🏠</span> Home
+				</a>
+				<a href="maintenance.html" class="active">
+					<span>🔧</span> Maintenance
+				</a>
+				<a href="reports.html">
+					<span>📊</span> Reports
+				</a>
+				<a href="transactions.html">
+					<span>📋</span> Transactions
+				</a>
+				<a href="#" id="logoutBtn">
+					<span>🚪</span> Logout
+				</a>
+			</nav>
+		</div>
+
+		<div class="main-content">
+			<div class="header">
+				<h1>Overdue Returns</h1>
+				<div class="header-right">
+					<span id="currentDateTime"></span>
+					<button onclick="window.location.href='transactions.html'" class="btn btn-secondary" style="margin-left:15px">Back</button>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-header">
+					<h2>Overdue Items</h2>
+					<div>
+						<button id="refreshBtn" class="btn btn-primary">Refresh</button>
+					</div>
+				</div>
+				<div class="card-body">
+					<p class="" style="color:#718096;margin-bottom:12px">Select an overdue row to proceed to payment/return.</p>
+					<table class="table" id="overdue-table">
+						<thead>
+							<tr>
+								<th>Membership No</th>
+								<th>Name</th>
+								<th>Book</th>
+								<th>Author</th>
+								<th>Issue Date</th>
+								<th>Due Date</th>
+								<th>Days Overdue</th>
+								<th>Fine (₹)</th>
+								<th>Select</th>
+							</tr>
+						</thead>
+						<tbody id="overdue-body">
+							<!-- Rows loaded from server -->
+						</tbody>
+					</table>
+
+					<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px">
+						<button id="payFineBtn" class="btn btn-primary">Pay Fine / Confirm Return</button>
+						<button id="emailReminderBtn" class="btn btn-secondary">Send Reminder</button>
+					</div>
+
+					<div id="overdue-error" class="error-message" style="display:none;margin-top:12px" aria-live="polite"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		document.getElementById('currentDateTime').textContent = new Date().toLocaleString();
+
+		const payFineBtn = document.getElementById('payFineBtn');
+		const emailBtn = document.getElementById('emailReminderBtn');
+		const errorDiv = document.getElementById('overdue-error');
+
+		function getSelected(){
+			const sel = document.querySelector('input[name="selectedOverdue"]:checked');
+			return sel ? JSON.parse(sel.value) : null;
+		}
+
+		// load pending fines from server
+		async function loadPending(){
+			const tbody = document.getElementById('overdue-body');
+			tbody.innerHTML = '<tr><td colspan="9">Loading...</td></tr>';
+			try{
+				const token = localStorage.getItem('token');
+				const res = await fetch('/api/fine/pending', { headers: token ? { 'x-auth-token': token } : {} });
+				if(!res.ok) throw new Error('Failed to load');
+				const fines = await res.json();
+				if(!fines.length){ tbody.innerHTML = '<tr><td colspan="9">No pending overdue items</td></tr>'; return; }
+				tbody.innerHTML = '';
+				fines.forEach(f => {
+					const tr = document.createElement('tr');
+					tr.innerHTML = `
+						<td>${f.membershipId}</td>
+						<td>${f.membershipName || ''}</td>
+						<td>${f.itemName}</td>
+						<td>${f.authorName || ''}</td>
+						<td>${new Date(f.issueDate).toISOString().slice(0,10)}</td>
+						<td>${new Date(f.returnDate).toISOString().slice(0,10)}</td>
+						<td>${f.daysOverdue}</td>
+						<td class="fine-amount">${f.fineAmount}</td>
+						<td><input type="radio" name="selectedOverdue" value='${JSON.stringify({mem:f.membershipId,name:(f.membershipName||''),book:f.itemName,fine:f.fineAmount,fineId:f.fineId})}'></td>
+					`;
+					tbody.appendChild(tr);
+				});
+			}catch(err){
+				console.error('Could not load pending fines', err);
+				tbody.innerHTML = '<tr><td colspan="9">Could not load pending items</td></tr>';
+			}
+		}
+
+		payFineBtn.addEventListener('click', ()=>{
+			errorDiv.style.display='none';
+			const sel = getSelected();
+			if(!sel){ errorDiv.textContent = 'Please select an overdue record to continue.'; errorDiv.style.display='block'; return; }
+			// Navigate to pay-fine page and include membership id and fineId
+			const parsed = sel;
+			const q = new URLSearchParams({ membershipId: parsed.mem, fineId: parsed.fineId, book: parsed.book });
+			window.location.href = 'pay-fine.html?' + q.toString();
+		});
+
+		emailBtn.addEventListener('click', ()=>{
+			errorDiv.style.display='none';
+			const sel = getSelected();
+			if(!sel){ errorDiv.textContent = 'Please select an overdue record to send reminder.'; errorDiv.style.display='block'; return; }
+			alert('Reminder sent to ' + sel.name + ' (simulated).');
+		});
+
+		document.getElementById('refreshBtn').addEventListener('click', ()=> location.reload());
+	</script>
+  </body>
+</html>
+

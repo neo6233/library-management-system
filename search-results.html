@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Library Management</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p>Search</p>
+            </div>
+            <div class="user-info" id="userInfo"></div>
+            <nav class="sidebar-nav">
+                <a href="user-home.html">
+                    <span>🏠</span> Home
+                </a>
+                <a href="book-available.html" class="active">
+                    <span>🔎</span> Search
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="transactions.html">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1>Search Results</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='book-available.html'" class="btn btn-secondary" style="margin-left:15px">Back</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Available Books</h2>
+                    <div>
+                        <button id="refreshBtn" class="btn btn-primary">Refresh</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="color:#718096;margin-bottom:12px">Select a book using the radio button in the last column to issue.</p>
+
+                    <table class="table" id="results-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>ISBN</th>
+                                <th>Available</th>
+                                <th>Select</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>The Great Gatsby</td>
+                                <td>F. Scott Fitzgerald</td>
+                                <td>9780743273565</td>
+                                <td>Yes</td>
+                                <td><input type="radio" name="selectedBook" value='{"title":"The Great Gatsby","author":"F. Scott Fitzgerald","isbn":"9780743273565"}'></td>
+                            </tr>
+                            <tr>
+                                <td>1984</td>
+                                <td>George Orwell</td>
+                                <td>9780451524935</td>
+                                <td>Yes</td>
+                                <td><input type="radio" name="selectedBook" value='{"title":"1984","author":"George Orwell","isbn":"9780451524935"}'></td>
+                            </tr>
+                            <tr>
+                                <td>To Kill a Mockingbird</td>
+                                <td>Harper Lee</td>
+                                <td>9780060935467</td>
+                                <td>Yes</td>
+                                <td><input type="radio" name="selectedBook" value='{"title":"To Kill a Mockingbird","author":"Harper Lee","isbn":"9780060935467"}'></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px">
+                        <button id="issueBtn" class="btn btn-primary">Issue Selected Book</button>
+                        <button id="reserveBtn" class="btn btn-secondary">Reserve</button>
+                    </div>
+
+                    <div id="srch-error" class="error-message" style="display:none;margin-top:12px" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('currentDateTime').textContent = new Date().toLocaleString();
+
+        const issueBtn = document.getElementById('issueBtn');
+        const reserveBtn = document.getElementById('reserveBtn');
+        const errorDiv = document.getElementById('srch-error');
+
+        function getSelected(){
+            const sel = document.querySelector('input[name="selectedBook"]:checked');
+            return sel ? JSON.parse(sel.value) : null;
+        }
+
+        issueBtn.addEventListener('click', ()=>{
+            errorDiv.style.display='none';
+            const sel = getSelected();
+            if(!sel){ errorDiv.textContent = 'Please select a book to issue.'; errorDiv.style.display='block'; return; }
+            const q = new URLSearchParams({title: sel.title, author: sel.author, isbn: sel.isbn});
+            window.location.href = 'book-issue.html?' + q.toString();
+        });
+
+        reserveBtn.addEventListener('click', ()=>{
+            errorDiv.style.display='none';
+            const sel = getSelected();
+            if(!sel){ errorDiv.textContent = 'Please select a book to reserve.'; errorDiv.style.display='block'; return; }
+            alert('Reservation placed for ' + sel.title + ' (simulated).');
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', ()=> location.reload());
+    </script>
+</body>
+</html>

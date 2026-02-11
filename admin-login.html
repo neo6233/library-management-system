@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+        <button onclick="window.location.href='user-login.html'" class="chart-btn" style="margin-left: 10px; background: #48bb78;">
+            <i>👤</i> User Login
+        </button>
+    </div>
+    
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="logo">📚</div>
+                <h1>Library Management System</h1>
+                <p>Administrator Login</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="userId">USER ID</label>
+                    <input type="text" id="userId" name="userId" placeholder="Enter Admin User ID" value="adm" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">PASSWORD</label>
+                    <input type="password" id="password" name="password" placeholder="Enter Password" value="adm" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn-login">Login</button>
+                </div>
+                
+                <div id="loginError" class="error-message" style="display: none;"></div>
+            </form>
+            
+            <div class="login-footer">
+                <p>Default Admin Credentials: adm / adm</p>
+                <p style="margin-top: 10px;">
+                    <a href="user-login.html" style="color: #667eea;">Switch to User Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+</body>
+</html>

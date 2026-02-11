@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Book - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p id="userRole">User</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="homeLink">
+                    <span>🏠</span> Home
+                </a>
+                <a href="transactions.html" class="active">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Return Book</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='transactions.html'" class="btn btn-secondary" style="margin-left: 15px;">
+                        Back to Transactions
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Return Book/Movie</h2>
+                </div>
+                <div class="card-body">
+                    <form id="returnForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="serialNo">Serial Number *</label>
+                                <input type="text" id="serialNo" name="serialNo" placeholder="Enter serial number" required 
+                                       onchange="loadIssueDetails()">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="membershipId">Membership ID *</label>
+                                <input type="text" id="membershipId" name="membershipId" placeholder="Enter membership ID" required
+                                       onchange="loadIssueDetails()">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bookName">Book Name</label>
+                                <input type="text" id="bookName" name="bookName" readonly>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="author">Author Name</label>
+                                <input type="text" id="author" name="author" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="issueDate">Issue Date</label>
+                                <input type="date" id="issueDate" name="issueDate" readonly>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="returnDate">Return Date *</label>
+                                <input type="date" id="returnDate" name="returnDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="actualReturnDate">Actual Return Date *</label>
+                                <input type="date" id="actualReturnDate" name="actualReturnDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="remarks">Remarks (Optional)</label>
+                            <textarea id="remarks" name="remarks" rows="3" placeholder="Enter any remarks"></textarea>
+                        </div>
+                        
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                Return Book
+                            </button>
+                            <button type="button" onclick="window.location.href='transactions.html'" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script src="/frontend/js/transactions.js"></script>
+    <script>
+        // Set home link based on user role
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const homeLink = document.getElementById('homeLink');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (user.isAdmin || user.role === 'admin') {
+                homeLink.href = 'admin-home.html';
+                userRoleEl.textContent = 'Admin';
+            } else {
+                homeLink.href = 'user-home.html';
+                userRoleEl.textContent = 'User';
+            }
+            
+            // Set default actual return date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('actualReturnDate').value = today;
+
+            // If navigated from active-issues with query params, populate fields and load details
+            const params = new URLSearchParams(window.location.search);
+            const serialParam = params.get('serial') || params.get('serialNo');
+            const memParam = params.get('mem') || params.get('membershipId');
+            if (serialParam) document.getElementById('serialNo').value = serialParam;
+            if (memParam) document.getElementById('membershipId').value = memParam;
+
+            if (serialParam || memParam) {
+                // call loadIssueDetails from transactions.js to auto-fill the rest
+                try { if (typeof loadIssueDetails === 'function') loadIssueDetails(); } catch (e) { console.warn(e); }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Home - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p>Admin Dashboard</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="admin-home.html" class="active">
+                    <span>🏠</span> Home
+                </a>
+                <a href="maintenance.html">
+                    <span>🔧</span> Maintenance
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="transactions.html">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Admin Home Page</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='index.html'" class="btn btn-secondary" style="margin-left: 15px;">
+                        Back to Chart
+                    </button>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-details">
+                        <h3 id="totalBooks">0</h3>
+                        <p>Total Books</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🎬</div>
+                    <div class="stat-details">
+                        <h3 id="totalMovies">0</h3>
+                        <p>Total Movies</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-details">
+                        <h3 id="totalMembers">0</h3>
+                        <p>Active Members</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-details">
+                        <h3 id="activeIssues">0</h3>
+                        <p>Active Issues</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Product Categories</h2>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code No From</th>
+                                <th>Code No To</th>
+                                <th>Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SC(B/M)000001</td>
+                                <td>SC(B/M)000004</td>
+                                <td>Science</td>
+                            </tr>
+                            <tr>
+                                <td>EC(B/M)000001</td>
+                                <td>EC(B/M)000004</td>
+                                <td>Economics</td>
+                            </tr>
+                            <tr>
+                                <td>FC(B/M)000001</td>
+                                <td>FC(B/M)000004</td>
+                                <td>Fiction</td>
+                            </tr>
+                            <tr>
+                                <td>CH(B/M)000001</td>
+                                <td>CH(B/M)000004</td>
+                                <td>Children</td>
+                            </tr>
+                            <tr>
+                                <td>PD(B/M)000001</td>
+                                <td>PD(B/M)000004</td>
+                                <td>Personal Development</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+        // Load dashboard stats
+        async function loadStats() {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Fetch books count
+                const booksRes = await fetch('http://localhost:5000/api/books', {
+                    headers: { 'x-auth-token': token }
+                });
+                const books = await booksRes.json();
+                document.getElementById('totalBooks').textContent = books.length;
+                
+                // Fetch movies count
+                const moviesRes = await fetch('http://localhost:5000/api/movies', {
+                    headers: { 'x-auth-token': token }
+                });
+                const movies = await moviesRes.json();
+                document.getElementById('totalMovies').textContent = movies.length;
+                
+                // Fetch members count
+                const membersRes = await fetch('http://localhost:5000/api/membership/active', {
+                    headers: { 'x-auth-token': token }
+                });
+                const members = await membersRes.json();
+                document.getElementById('totalMembers').textContent = members.length;
+                
+                // Fetch active issues count
+                const issuesRes = await fetch('http://localhost:5000/api/issue/active', {
+                    headers: { 'x-auth-token': token }
+                });
+                const issues = await issuesRes.json();
+                document.getElementById('activeIssues').textContent = issues.length;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+</body>
+</html>

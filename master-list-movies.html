@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Master List - Movies</title>
+	<link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+	<div class="chart-nav">
+		<button onclick="window.location.href='index.html'" class="chart-btn">
+			<i>📊</i> Chart
+		</button>
+	</div>
+
+	<div class="dashboard-container">
+		<div class="sidebar">
+			<div class="sidebar-header">
+				<h3>📚 Library MS</h3>
+				<p>Admin Maintenance</p>
+			</div>
+			<div class="user-info" id="userInfo"></div>
+			<nav class="sidebar-nav">
+				<a href="admin-home.html">
+					<span>🏠</span> Home
+				</a>
+				<a href="maintenance.html" class="active">
+					<span>🔧</span> Maintenance
+				</a>
+				<a href="reports.html">
+					<span>📊</span> Reports
+				</a>
+				<a href="transactions.html">
+					<span>📋</span> Transactions
+				</a>
+				<a href="#" id="logoutBtn">
+					<span>🚪</span> Logout
+				</a>
+			</nav>
+		</div>
+
+		<div class="main-content">
+			<div class="header">
+				<h1>Master List - Movies</h1>
+				<div class="header-right">
+					<span id="currentDateTime"></span>
+					<button onclick="window.location.href='maintenance.html'" class="btn btn-secondary" style="margin-left: 15px;">
+						Back to Maintenance
+					</button>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-header">
+					<h2>Movies</h2>
+					<div>
+						<button id="addBtn" class="btn btn-primary">Add Movie</button>
+					</div>
+				</div>
+				<div class="card-body">
+					<div class="search-section">
+						<div class="search-box">
+							<input id="searchInput" type="text" placeholder="Search by Title, Director or ISBN">
+							<button id="searchBtn" class="btn btn-primary">Search</button>
+							<button id="resetBtn" class="btn btn-secondary">Reset</button>
+						</div>
+					</div>
+
+					<table class="table" id="movies-table">
+						<thead>
+							<tr>
+								<th>Title</th>
+								<th>Director/Author</th>
+								<th>Category</th>
+								<th>Cost (₹)</th>
+								<th>Quantity</th>
+								<th>Procured</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Inception</td>
+								<td>Christopher Nolan</td>
+								<td>Fiction</td>
+								<td>250</td>
+								<td>3</td>
+								<td>2025-10-10</td>
+								<td><button class="btn btn-view" onclick="editItem(this)">Edit</button></td>
+							</tr>
+							<tr>
+								<td>Interstellar</td>
+								<td>Christopher Nolan</td>
+								<td>Science</td>
+								<td>300</td>
+								<td>2</td>
+								<td>2024-05-22</td>
+								<td><button class="btn btn-view" onclick="editItem(this)">Edit</button></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="card" id="add-card" style="display:none;">
+				<div class="card-header"><h2>Add Movie/Book</h2></div>
+				<div class="card-body">
+					<form id="addForm">
+						<div class="form-group">
+							<label>Item Type *</label>
+							<div class="radio-group">
+								<label class="radio-label"><input type="radio" name="itemType" value="Book"> Book</label>
+								<label class="radio-label"><input type="radio" name="itemType" value="Movie" checked> Movie</label>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="title">Title *</label>
+							<input id="title" type="text" required>
+						</div>
+
+						<div class="form-group">
+							<label for="director">Director/Author *</label>
+							<input id="director" type="text" required>
+						</div>
+
+						<div class="form-group">
+							<label for="category">Category *</label>
+							<select id="category" required>
+								<option value="">Select Category</option>
+								<option>Fiction</option>
+								<option>Science</option>
+								<option>Economics</option>
+								<option>Children</option>
+								<option>Documentary</option>
+							</select>
+						</div>
+
+						<div class="form-row">
+							<div class="form-group">
+								<label for="cost">Cost (₹) *</label>
+								<input id="cost" type="number" min="0" step="0.01" required>
+							</div>
+							<div class="form-group">
+								<label for="quantity">Quantity *</label>
+								<input id="quantity" type="number" min="1" value="1" required>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="procDate">Date of Procurement</label>
+							<input id="procDate" type="date">
+						</div>
+
+						<div id="add-error" class="error-message" style="display:none"></div>
+
+						<div class="form-actions">
+							<button type="submit" class="btn btn-primary">Add</button>
+							<button type="button" id="cancelAdd" class="btn btn-secondary">Cancel</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		document.getElementById('currentDateTime').textContent = new Date().toLocaleString();
+
+		const searchInput = document.getElementById('searchInput');
+		const moviesTable = document.getElementById('movies-table').tBodies[0];
+		const addBtn = document.getElementById('addBtn');
+		const addCard = document.getElementById('add-card');
+		const addForm = document.getElementById('addForm');
+		const addError = document.getElementById('add-error');
+		const cancelAdd = document.getElementById('cancelAdd');
+
+		async function renderMovies(movies){
+			const tbody = moviesTable;
+			tbody.innerHTML = '';
+			movies.forEach(m => {
+				const row = tbody.insertRow();
+				if(m.serialNo) row.dataset.serialno = m.serialNo;
+				row.insertCell(0).textContent = m.name || '';
+				row.insertCell(1).textContent = m.director || '';
+				row.insertCell(2).textContent = m.category || '';
+				row.insertCell(3).textContent = m.cost || '';
+				row.insertCell(4).textContent = m.quantity || '';
+				row.insertCell(5).textContent = m.procurementDate ? new Date(m.procurementDate).toISOString().slice(0,10) : '';
+				const actions = row.insertCell(6);
+				const btn = document.createElement('button'); btn.className='btn btn-view'; btn.textContent='Edit'; btn.onclick = ()=> editItem(btn);
+				actions.appendChild(btn);
+			});
+		}
+
+		async function loadMovies(){
+			try{
+				const res = await fetch('/api/movies', { credentials: 'same-origin' });
+				if(!res.ok) throw new Error('Failed to load');
+				const movies = await res.json();
+				renderMovies(movies);
+			}catch(e){
+				console.warn('Could not load movies from server:', e);
+			}
+		}
+
+		document.getElementById('searchBtn').addEventListener('click', async ()=>{
+			const q = searchInput.value.trim();
+			if(!q){ loadMovies(); return; }
+			try{
+				const res = await fetch('/api/movies/search?query=' + encodeURIComponent(q), { credentials: 'same-origin' });
+				if(!res.ok) throw new Error('Search failed');
+				const movies = await res.json();
+				renderMovies(movies);
+			}catch(e){
+				Array.from(moviesTable.rows).forEach(row=>{
+					row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+				});
+			}
+		});
+
+		document.getElementById('resetBtn').addEventListener('click', ()=>{
+			searchInput.value = '';
+			loadMovies();
+		});
+
+		addBtn.addEventListener('click', ()=>{ addCard.style.display=''; addError.style.display='none'; addForm.reset(); });
+		cancelAdd.addEventListener('click', ()=>{ addCard.style.display='none'; addForm.reset(); });
+
+		addForm.addEventListener('submit', async e=>{
+			e.preventDefault();
+			addError.style.display='none';
+			const title = document.getElementById('title').value.trim();
+			const director = document.getElementById('director').value.trim();
+			const category = document.getElementById('category').value;
+			const cost = parseFloat(document.getElementById('cost').value);
+			const quantity = parseInt(document.getElementById('quantity').value,10);
+			if(!title || !director || !category || isNaN(cost) || isNaN(quantity)){
+				addError.textContent = 'Please fill all mandatory fields.'; addError.style.display = 'block'; return;
+			}
+
+			const proc = document.getElementById('procDate').value || '';
+			try{
+				const res = await fetch('/api/movies', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					credentials: 'same-origin',
+					body: JSON.stringify({ name: title, director, category, cost, quantity, procurementDate: proc })
+				});
+				if(!res.ok) throw new Error('Server error');
+				addCard.style.display='none'; addForm.reset();
+				loadMovies();
+			}catch(err){
+				const row = moviesTable.insertRow();
+				row.insertCell(0).textContent = title;
+				row.insertCell(1).textContent = director;
+				row.insertCell(2).textContent = category;
+				row.insertCell(3).textContent = cost;
+				row.insertCell(4).textContent = quantity;
+				row.insertCell(5).textContent = proc;
+				const actions = row.insertCell(6);
+				const btn = document.createElement('button'); btn.className='btn btn-view'; btn.textContent='Edit'; btn.onclick = ()=> editItem(btn);
+				actions.appendChild(btn);
+				addCard.style.display='none'; addForm.reset();
+			}
+		});
+
+		function editItem(btn){
+			const tr = btn.closest('tr');
+			const cells = tr.cells;
+			const serialNo = tr.dataset.serialno || '';
+			const params = new URLSearchParams({
+				type:'Movie', title: cells[0].textContent, author: cells[1].textContent,
+				originalTitle: cells[0].textContent, originalAuthor: cells[1].textContent,
+				category: cells[2].textContent, cost: cells[3].textContent, quantity: cells[4].textContent,
+				procurementDate: cells[5].textContent, serialNo: serialNo
+			});
+			window.location.href = 'update-book.html?' + params.toString();
+		}
+
+		// initial load
+		loadMovies();
+	</script>
+</body>
+</html>
+

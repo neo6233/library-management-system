@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p id="userRole">User</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="homeLink">
+                    <span>🏠</span> Home
+                </a>
+                <a href="transactions.html" class="active">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Transactions</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card" onclick="window.location.href='book-available.html'">
+                    <div class="stat-icon">🔍</div>
+                    <div class="stat-details">
+                        <h3>Is book available?</h3>
+                        <p>Check Availability</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='book-issue.html'">
+                    <div class="stat-icon">📤</div>
+                    <div class="stat-details">
+                        <h3>Issue book?</h3>
+                        <p>Issue new book</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='return-book.html'">
+                    <div class="stat-icon">📥</div>
+                    <div class="stat-details">
+                        <h3>Return book?</h3>
+                        <p>Return issued book</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='pay-fine.html'">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-details">
+                        <h3>Pay Fine?</h3>
+                        <p>Pay pending fines</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Recent Transactions</h2>
+                </div>
+                <div class="card-body">
+                    <table class="table" id="recentTransactions">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Type</th>
+                                <th>Item</th>
+                                <th>Member</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+        // Set home link based on user role
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const homeLink = document.getElementById('homeLink');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (user.isAdmin || user.role === 'admin') {
+                homeLink.href = 'admin-home.html';
+                userRoleEl.textContent = 'Admin';
+            } else {
+                homeLink.href = 'user-home.html';
+                userRoleEl.textContent = 'User';
+            }
+            
+            // Load recent transactions
+            loadRecentTransactions();
+        });
+        
+        async function loadRecentTransactions() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:5000/api/issue/active', {
+                    headers: { 'x-auth-token': token }
+                });
+                
+                const issues = await response.json();
+                const tableBody = document.querySelector('#recentTransactions tbody');
+                
+                if (issues.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No recent transactions</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                issues.slice(0, 5).forEach(issue => {
+                    html += `
+                        <tr>
+                            <td>${issue.issueId}</td>
+                            <td>${issue.itemType}</td>
+                            <td>${issue.itemName}</td>
+                            <td>${issue.memberName}</td>
+                            <td>${new Date(issue.issueDate).toLocaleDateString()}</td>
+                            <td><span class="status-issued">Issued</span></td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+            }
+        }
+    </script>
+</body>
+</html>

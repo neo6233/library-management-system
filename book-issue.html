@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Issue - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p id="userRole">User</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="homeLink">
+                    <span>🏠</span> Home
+                </a>
+                <a href="transactions.html" class="active">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Book Issue</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='transactions.html'" class="btn btn-secondary" style="margin-left: 15px;">
+                        Back to Transactions
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Issue New Book</h2>
+                </div>
+                <div class="card-body">
+                    <form id="issueForm">
+                        <input type="hidden" id="selectedSerialNo">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="bookName">Book Name *</label>
+                                <input type="text" id="bookName" name="bookName" placeholder="Enter book name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="author">Author Name</label>
+                                <input type="text" id="author" name="author" placeholder="Author name" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="membershipId">Membership ID *</label>
+                                <input type="text" id="membershipId" name="membershipId" placeholder="Enter membership ID" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="issueDate">Issue Date *</label>
+                                <input type="date" id="issueDate" name="issueDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="returnDate">Return Date *</label>
+                                <input type="date" id="returnDate" name="returnDate" required>
+                                <small style="color: #718096;">Default: 15 days from issue date</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="remarks">Remarks (Optional)</label>
+                            <textarea id="remarks" name="remarks" rows="3" placeholder="Enter any remarks"></textarea>
+                        </div>
+                        
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                        
+                        <div class="form-actions">
+                            <button type="button" onclick="window.location.href='book-available.html'" class="btn btn-secondary">
+                                Search Books
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Issue Book
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Quick Search</h2>
+                </div>
+                <div class="card-body">
+                    <div class="search-box">
+                        <input type="text" id="quickSearch" placeholder="Search by book name or author">
+                        <button onclick="quickSearchBooks()" class="btn-primary">Search</button>
+                    </div>
+                    <div id="quickSearchResults" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script src="/frontend/js/transactions.js"></script>
+    <script>
+        // Set home link based on user role
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const homeLink = document.getElementById('homeLink');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (user.isAdmin || user.role === 'admin') {
+                homeLink.href = 'admin-home.html';
+                userRoleEl.textContent = 'Admin';
+            } else {
+                homeLink.href = 'user-home.html';
+                userRoleEl.textContent = 'User';
+            }
+            
+            // Set default issue date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('issueDate').value = today;
+        });
+        
+        // Quick search function
+        async function quickSearchBooks() {
+            const query = document.getElementById('quickSearch').value;
+            
+            if (!query) {
+                alert('Please enter search term');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:5000/api/books/search?query=${query}`, {
+                    headers: { 'x-auth-token': token }
+                });
+                
+                const books = await response.json();
+                displayQuickSearchResults(books);
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+        
+        function displayQuickSearchResults(books) {
+            const resultsDiv = document.getElementById('quickSearchResults');
+            
+            if (books.length === 0) {
+                resultsDiv.innerHTML = '<p class="text-center">No books found</p>';
+                return;
+            }
+            
+            let html = '<table class="table"><thead><tr><th>Book Name</th><th>Author</th><th>Serial No</th><th>Action</th></tr></thead><tbody>';
+            
+            books.forEach(book => {
+                if (book.availableCopies > 0) {
+                    html += `
+                        <tr>
+                            <td>${book.name}</td>
+                            <td>${book.author}</td>
+                            <td>${book.serialNo}</td>
+                            <td>
+                                <button onclick="selectBook('${book.serialNo}', '${book.name}', '${book.author}')" 
+                                        class="btn btn-primary btn-sm">Select</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            html += '</tbody></table>';
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

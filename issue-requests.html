@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Issue Requests - Library Management</title>
+	<link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+	<div class="chart-nav">
+		<button onclick="window.location.href='index.html'" class="chart-btn">
+			<i>📊</i> Chart
+		</button>
+	</div>
+
+	<div class="dashboard-container">
+		<div class="sidebar">
+			<div class="sidebar-header">
+				<h3>📚 Library MS</h3>
+				<p>Search & Transactions</p>
+			</div>
+			<div class="user-info" id="userInfo"></div>
+			<nav class="sidebar-nav">
+				<a href="user-home.html">
+					<span>🏠</span> Home
+				</a>
+				<a href="book-available.html" class="active">
+					<span>🔎</span> Search
+				</a>
+				<a href="reports.html">
+					<span>📊</span> Reports
+				</a>
+				<a href="transactions.html">
+					<span>📋</span> Transactions
+				</a>
+				<a href="#" id="logoutBtn">
+					<span>🚪</span> Logout
+				</a>
+			</nav>
+		</div>
+
+		<div class="main-content">
+			<div class="header">
+				<h1>Issue Requests</h1>
+				<div class="header-right">
+					<span id="currentDateTime"></span>
+					<button onclick="window.location.href='book-available.html'" class="btn btn-secondary" style="margin-left:15px">Back</button>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-header">
+					<h2>Available Books</h2>
+					<div>
+						<button id="refreshBtn" class="btn btn-primary">Refresh</button>
+					</div>
+				</div>
+				<div class="card-body">
+					<p style="color:#718096;margin-bottom:12px">Select a book using the radio button in the last column.</p>
+
+					<table class="table" id="books-table">
+						<thead>
+							<tr>
+								<th>Title</th>
+								<th>Author</th>
+								<th>ISBN</th>
+								<th>Available</th>
+								<th>Select</th>
+							</tr>
+						</thead>
+						<tbody id="available-books-body">
+							<!-- available books loaded from server -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="card">
+				<div class="card-header"><h2>Issue Book</h2></div>
+				<div class="card-body">
+					<form id="issue-form" novalidate>
+						<input type="hidden" id="selectedSerialNo">
+						<div class="form-group">
+							<label for="bookName">Name of Book *</label>
+							<input type="text" id="bookName" name="bookName" readonly placeholder="Select a book from the list above or type manually">
+						</div>
+
+						<!-- membership is optional now; issuing will default to GUEST if not provided -->
+
+						<div class="form-group">
+							<label for="authorName">Author</label>
+							<input type="text" id="authorName" name="authorName" readonly>
+						</div>
+
+						<div class="form-row">
+							<div class="form-group">
+								<label for="issueDate">Issue Date *</label>
+								<input type="date" id="issueDate" name="issueDate">
+							</div>
+							<div class="form-group">
+								<label for="returnDate">Return Date *</label>
+								<input type="date" id="returnDate" name="returnDate">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="remarks">Remarks</label>
+							<input type="text" id="remarks" name="remarks">
+						</div>
+
+						<div id="form-error" class="error-message" style="display:none" aria-live="polite"></div>
+
+						<div class="form-actions">
+							<button type="submit" class="btn btn-primary">Confirm Issue</button>
+							<button type="button" id="clearBtn" class="btn btn-secondary">Clear</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		document.getElementById('currentDateTime').textContent = new Date().toLocaleString();
+
+		const today = new Date();
+		function toDateInputValue(d){
+			const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+			return local.toISOString().slice(0,10);
+		}
+
+		const issueDateInput = document.getElementById('issueDate');
+		const returnDateInput = document.getElementById('returnDate');
+		const bookNameInput = document.getElementById('bookName');
+		const authorInput = document.getElementById('authorName');
+		const formError = document.getElementById('form-error');
+
+		// Initialize issue date to today and return date to +15 days
+		issueDateInput.value = toDateInputValue(today);
+		issueDateInput.min = toDateInputValue(today);
+		const plus15 = new Date(today);
+		plus15.setDate(plus15.getDate() + 15);
+		returnDateInput.value = toDateInputValue(plus15);
+
+		// When issue date changes, adjust return date constraints
+		issueDateInput.addEventListener('change', ()=>{
+			const issue = new Date(issueDateInput.value);
+			const maxReturn = new Date(issue);
+			maxReturn.setDate(maxReturn.getDate() + 15);
+			returnDateInput.max = toDateInputValue(maxReturn);
+			// If current return date is greater than max, set to max
+			if(new Date(returnDateInput.value) > maxReturn) returnDateInput.value = toDateInputValue(maxReturn);
+			// Also enforce issue date not earlier than today
+			const min = new Date(issueDateInput.min);
+			if(issue < min){ issueDateInput.value = toDateInputValue(min); }
+		});
+
+			// Wire table radio selection to populate book, author and serial (uses ISBN as serial when available)
+			document.querySelectorAll('input[name="selectedBook"]').forEach(r=>{
+				r.addEventListener('change', e=>{
+					try{
+						const data = JSON.parse(e.target.value);
+						bookNameInput.value = data.title || '';
+						authorInput.value = data.author || '';
+						// use ISBN field as serial number placeholder
+						document.getElementById('selectedSerialNo').value = data.isbn || data.serialNo || '';
+					}catch(err){
+						bookNameInput.value = '';
+						authorInput.value = '';
+						document.getElementById('selectedSerialNo').value = '';
+					}
+					formError.style.display = 'none';
+					formError.textContent = '';
+				});
+			});
+
+			// Load available books from server
+			async function loadAvailableBooks(){
+				const tbody = document.getElementById('available-books-body');
+				tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+				try{
+					const token = localStorage.getItem('token');
+					const res = await fetch('/api/books/available', { headers: token ? { 'x-auth-token': token } : {} });
+					if(!res.ok) throw new Error('Failed');
+					const books = await res.json();
+					if(!books.length){ tbody.innerHTML = '<tr><td colspan="5">No available books</td></tr>'; return; }
+					tbody.innerHTML = '';
+					books.forEach(b=>{
+						const tr = document.createElement('tr');
+						tr.innerHTML = `
+							<td>${b.name}</td>
+							<td>${b.author}</td>
+							<td>${b.serialNo}</td>
+							<td>${b.availableCopies > 0 ? 'Yes' : 'No'}</td>
+							<td><input type="radio" name="selectedBook" value='${JSON.stringify({ title: b.name, author: b.author, serialNo: b.serialNo })}'></td>
+						`;
+						tbody.appendChild(tr);
+					});
+					// rebind change handlers
+					document.querySelectorAll('input[name="selectedBook"]').forEach(r=>{
+						r.addEventListener('change', e=>{
+							try{ const data = JSON.parse(e.target.value); bookNameInput.value = data.title || ''; authorInput.value = data.author || ''; document.getElementById('selectedSerialNo').value = data.serialNo || ''; }catch(err){ bookNameInput.value=''; authorInput.value=''; document.getElementById('selectedSerialNo').value=''; }
+							formError.style.display = 'none'; formError.textContent = '';
+						});
+					});
+				}catch(err){ console.error('loadAvailableBooks error', err); tbody.innerHTML = '<tr><td colspan="5">Could not load books</td></tr>'; }
+			}
+
+			// load on page ready
+			loadAvailableBooks();
+
+			// membership lookup with debounce
+			let membTimer;
+			const membershipInput = document.getElementById('membershipId');
+			const memberInfoDiv = document.getElementById('memberInfo');
+
+			membershipInput.addEventListener('input', ()=>{
+				clearTimeout(membTimer);
+				membTimer = setTimeout(checkMembership, 500);
+			});
+
+			async function checkMembership(){
+				const id = membershipInput.value.trim();
+				membershipInput.dataset.valid = 'false';
+				memberInfoDiv.textContent = '';
+				if(!id) return;
+				memberInfoDiv.textContent = 'Checking membership...';
+				try{
+					const token = localStorage.getItem('token');
+					const res = await fetch('/api/membership/' + encodeURIComponent(id), { headers: token ? { 'x-auth-token': token } : {} });
+					if(!res.ok){ memberInfoDiv.textContent = 'Membership not found'; return; }
+					const m = await res.json();
+					const pending = m.amountPending || 0;
+					memberInfoDiv.innerHTML = `<strong>${m.firstName} ${m.lastName}</strong> — Status: ${m.status} ${pending>0?'- Pending: ₹'+pending:''}`;
+					if(m.status === 'Active' && pending === 0){ membershipInput.dataset.valid = 'true'; }
+				}catch(err){ console.error('checkMembership', err); memberInfoDiv.textContent = 'Error checking membership'; }
+			}
+
+		// Form submit validations
+		document.getElementById('issue-form').addEventListener('submit', e=>{
+			e.preventDefault();
+			formError.style.display = 'none';
+			formError.textContent = '';
+			// Book name required
+			if(!bookNameInput.value.trim()){
+				formError.textContent = 'Please select a book from the list or enter the book name.';
+				formError.style.display = 'block';
+				return;
+			}
+			// Issue date cannot be less than today
+			const issue = new Date(issueDateInput.value);
+			const minIssue = new Date(issueDateInput.min);
+			if(issue < minIssue){
+				formError.textContent = 'Issue Date cannot be earlier than today.';
+				formError.style.display = 'block';
+				return;
+			}
+			// Return date max check: not greater than 15 days from issue
+			const returnD = new Date(returnDateInput.value);
+			const maxReturn = new Date(issue);
+			maxReturn.setDate(maxReturn.getDate() + 15);
+			if(returnD > maxReturn){
+				formError.textContent = 'Return Date cannot be greater than 15 days from the Issue Date.';
+				formError.style.display = 'block';
+				return;
+			}
+
+			// If all good, send POST to server to create the issue
+			const membEl = document.getElementById('membershipId');
+			const membershipVal = membEl ? (membEl.value.trim() || 'GUEST') : 'GUEST';
+			const payload = {
+				serialNo: document.getElementById('selectedSerialNo').value || document.getElementById('bookName').value,
+				itemType: 'Book',
+				membershipId: membershipVal,
+				issueDate: issueDateInput.value,
+				returnDate: returnDateInput.value,
+				remarks: document.getElementById('remarks').value || ''
+			};
+			(async ()=>{
+				try{
+					const token = localStorage.getItem('token');
+						const res = await fetch('/api/issue', {
+							method: 'POST',
+							headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { 'x-auth-token': token } : {}),
+							body: JSON.stringify(payload)
+						});
+
+						// read response body safely
+						const raw = await res.text();
+						let body;
+						try{ body = JSON.parse(raw); } catch(e){ body = raw; }
+						console.log('POST /api/issue response', res.status, body);
+
+						if(!res.ok){
+							formError.textContent = `Error ${res.status}: ${typeof body === 'string' ? body : (body.msg || JSON.stringify(body))}`;
+							formError.style.display='block';
+							return;
+						}
+
+						// success — show server response briefly then redirect
+						formError.textContent = `Issue created (${res.status})`;
+						formError.style.display = 'block';
+						setTimeout(()=> window.location.href = 'active-issues.html', 700);
+				}catch(err){
+					console.error('Issue confirm error', err);
+					formError.textContent = 'Server error while confirming issue.'; formError.style.display='block';
+				}
+			})();
+		});
+
+		document.getElementById('clearBtn').addEventListener('click', ()=>{
+			document.getElementById('issue-form').reset();
+			issueDateInput.value = toDateInputValue(today);
+			returnDateInput.value = toDateInputValue(plus15);
+			bookNameInput.value = '';
+			authorInput.value = '';
+			formError.textContent = '';
+			formError.style.display = 'none';
+		});
+
+		document.getElementById('refreshBtn').addEventListener('click', ()=> location.reload());
+	</script>
+</body>
+</html>
+

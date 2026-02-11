@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p>Admin Maintenance</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="admin-home.html">
+                    <span>🏠</span> Home
+                </a>
+                <a href="maintenance.html" class="active">
+                    <span>🔧</span> Maintenance
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="transactions.html">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>User Management</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='maintenance.html'" class="btn btn-secondary" style="margin-left: 15px;">
+                        Back to Maintenance
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Add/Update User</h2>
+                </div>
+                <div class="card-body">
+                    <form id="addUserForm">
+                        <div class="form-group">
+                            <label>User Type *</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="userType" value="new" checked>
+                                    New User
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="userType" value="existing">
+                                    Existing User
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="editUserGroup" style="display: none;">
+                            <div class="form-group">
+                                <label for="editUserId">User ID *</label>
+                                <input type="text" id="editUserId" name="editUserId" placeholder="Enter user ID">
+                                <button type="button" onclick="loadUserForEdit()" class="btn btn-secondary" style="margin-top: 10px;">
+                                    Load User
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="name">Name *</label>
+                            <input type="text" id="name" name="name" placeholder="Enter name" required>
+                        </div>
+                        
+                        <div id="passwordGroup">
+                            <div class="form-group">
+                                <label for="userId">User ID</label>
+                                <input type="text" id="userId" name="userId" placeholder="Enter user ID">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password" placeholder="Enter password">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select id="role" name="role">
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="isAdmin" name="isAdmin">
+                                Admin Privileges
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="active" name="active" checked>
+                                Active
+                            </label>
+                        </div>
+                        
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                Save User
+                            </button>
+                            <button type="button" onclick="window.location.href='maintenance.html'" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Users List</h2>
+                </div>
+                <div class="card-body">
+                    <div id="usersList">
+                        <!-- Users list will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script src="/frontend/js/user-management.js"></script>
+    <script>
+        // Check if user is admin
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!user.isAdmin && user.role !== 'admin') {
+                window.location.href = 'user-home.html';
+            }
+            
+            loadUsers();
+        });
+    </script>
+</body>
+</html>

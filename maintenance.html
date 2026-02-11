@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p>Admin Maintenance</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="admin-home.html">
+                    <span>🏠</span> Home
+                </a>
+                <a href="maintenance.html" class="active">
+                    <span>🔧</span> Maintenance
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="transactions.html">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Maintenance</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card" onclick="window.location.href='add-membership.html'">
+                    <div class="stat-icon">➕</div>
+                    <div class="stat-details">
+                        <h3>Add</h3>
+                        <p>Membership</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='update-membership.html'">
+                    <div class="stat-icon">✏️</div>
+                    <div class="stat-details">
+                        <h3>Update</h3>
+                        <p>Membership</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='add-book.html'">
+                    <div class="stat-icon">➕</div>
+                    <div class="stat-details">
+                        <h3>Add</h3>
+                        <p>Book/Movie</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='update-book.html'">
+                    <div class="stat-icon">✏️</div>
+                    <div class="stat-details">
+                        <h3>Update</h3>
+                        <p>Book/Movie</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card" onclick="window.location.href='user-management.html'">
+                    <div class="stat-icon">👤</div>
+                    <div class="stat-details">
+                        <h3>User</h3>
+                        <p>Management</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Housekeeping</h2>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div style="text-align: center;">
+                            <h3 style="color: #2d3748; margin-bottom: 15px;">Membership</h3>
+                            <button onclick="window.location.href='add-membership.html'" class="btn btn-primary" style="margin-bottom: 10px; width: 100%;">
+                                Add Membership
+                            </button>
+                            <button onclick="window.location.href='update-membership.html'" class="btn btn-secondary" style="width: 100%;">
+                                Update Membership
+                            </button>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <h3 style="color: #2d3748; margin-bottom: 15px;">Books/Movies</h3>
+                            <button onclick="window.location.href='add-book.html'" class="btn btn-primary" style="margin-bottom: 10px; width: 100%;">
+                                Add Book/Movie
+                            </button>
+                            <button onclick="window.location.href='update-book.html'" class="btn btn-secondary" style="width: 100%;">
+                                Update Book/Movie
+                            </button>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <h3 style="color: #2d3748; margin-bottom: 15px;">User Management</h3>
+                            <button onclick="window.location.href='user-management.html'" class="btn btn-primary" style="width: 100%;">
+                                Manage Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+        // Check if user is admin
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!user.isAdmin && user.role !== 'admin') {
+                window.location.href = 'user-home.html';
+            }
+        });
+    </script>
+</body>
+</html>

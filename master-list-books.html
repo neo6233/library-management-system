@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master List - Books - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p id="userRole">User</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="homeLink">
+                    <span>🏠</span> Home
+                </a>
+                <a href="transactions.html">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="reports.html" class="active">
+                    <span>📊</span> Reports
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Master List of Books</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='reports.html'" class="btn btn-secondary" style="margin-left: 15px;">
+                        Back to Reports
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>All Books</h2>
+                </div>
+                <div class="card-body">
+                    <table class="table" id="booksTable">
+                        <thead>
+                            <tr>
+                                <th>Serial No</th>
+                                <th>Name of Book</th>
+                                <th>Author Name</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Cost</th>
+                                <th>Procurement Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+        // Set home link based on user role
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const homeLink = document.getElementById('homeLink');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (user.isAdmin || user.role === 'admin') {
+                homeLink.href = 'admin-home.html';
+                userRoleEl.textContent = 'Admin';
+            } else {
+                homeLink.href = 'user-home.html';
+                userRoleEl.textContent = 'User';
+            }
+            
+            // Load books
+            loadBooks();
+        });
+        
+        async function loadBooks() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:5000/api/books', {
+                    headers: { 'x-auth-token': token }
+                });
+                
+                const books = await response.json();
+                const tableBody = document.querySelector('#booksTable tbody');
+                
+                if (books.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No books found</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                books.forEach(book => {
+                    const statusClass = book.status === 'Available' ? 'status-available' : 'status-issued';
+                    html += `
+                        <tr>
+                            <td>${book.serialNo}</td>
+                            <td>${book.name}</td>
+                            <td>${book.author}</td>
+                            <td>${book.category}</td>
+                            <td><span class="${statusClass}">${book.status}</span></td>
+                            <td>₹${book.cost}</td>
+                            <td>${new Date(book.procurementDate).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading books:', error);
+                document.querySelector('#booksTable tbody').innerHTML = 
+                    '<tr><td colspan="7" class="text-center error-message">Error loading books</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>

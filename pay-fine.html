@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay Fine - Library Management System</title>
+    <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+    <div class="chart-nav">
+        <button onclick="window.location.href='index.html'" class="chart-btn">
+            <i>📊</i> Chart
+        </button>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>📚 Library MS</h3>
+                <p id="userRole">User</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <!-- User info will be populated here -->
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" id="homeLink">
+                    <span>🏠</span> Home
+                </a>
+                <a href="transactions.html" class="active">
+                    <span>📋</span> Transactions
+                </a>
+                <a href="reports.html">
+                    <span>📊</span> Reports
+                </a>
+                <a href="#" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Pay Fine</h1>
+                <div class="header-right">
+                    <span id="currentDateTime"></span>
+                    <button onclick="window.location.href='transactions.html'" class="btn btn-secondary" style="margin-left: 15px;">
+                        Back to Transactions
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Fine Payment</h2>
+                </div>
+                <div class="card-body">
+                    <form id="payFineForm">
+                        <div class="form-group">
+                            <label for="membershipId">Membership ID</label>
+                            <input type="text" id="membershipId" name="membershipId" placeholder="Enter membership ID" 
+                                   required oninput="loadMemberFines()">
+                        </div>
+                        
+                        <div id="finesList" style="margin-top: 30px;">
+                            <!-- Fines will be displayed here -->
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="remarks">Remarks (Optional)</label>
+                            <textarea id="remarks" name="remarks" rows="3" placeholder="Enter any remarks"></textarea>
+                        </div>
+                        
+                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                Pay Selected Fines
+                            </button>
+                            <button type="button" onclick="window.location.href='transactions.html'" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/frontend/js/auth.js"></script>
+    <script src="/frontend/js/transactions.js"></script>
+    <script>
+        // Set home link based on user role
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const homeLink = document.getElementById('homeLink');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (user.isAdmin || user.role === 'admin') {
+                homeLink.href = 'admin-home.html';
+                userRoleEl.textContent = 'Admin';
+            } else {
+                homeLink.href = 'user-home.html';
+                userRoleEl.textContent = 'User';
+            }
+            
+            // Check if membership ID is passed via URL (support both 'membershipId' and legacy 'mem')
+            (async () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const membershipId = urlParams.get('membershipId') || urlParams.get('mem');
+                const bookName = urlParams.get('book') || urlParams.get('bookName') || urlParams.get('item');
+
+                if (membershipId) {
+                    document.getElementById('membershipId').value = membershipId;
+                    await loadMemberFines();
+
+                    // If a specific fineId was passed, auto-select that fine checkbox
+                    const fineId = urlParams.get('fineId');
+                    if (fineId) {
+                        const boxes = document.querySelectorAll('.fine-checkbox');
+                        for (let b of boxes) {
+                            if ((b.dataset.fineId || '') === fineId) { b.checked = true; break; }
+                        }
+                    } else if (bookName) {
+                        const boxes = document.querySelectorAll('.fine-checkbox');
+                        for (let b of boxes) {
+                            if ((b.dataset.book || '').trim().toLowerCase() === (bookName || '').trim().toLowerCase()) {
+                                b.checked = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            })();
+        });
+    </script>
+</body>
+</html>
